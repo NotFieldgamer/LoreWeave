@@ -1,0 +1,50 @@
+name: ci
+on:
+  push: { branches: [main] }
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      neo4j:
+        image: neo4j:5
+        env:
+          NEO4J_AUTH: neo4j/loreweave-dev
+        ports:
+          - 7687:7687
+          - 7474:7474
+        options: >-
+          --health-cmd "cypher-shell -u neo4j -p loreweave-dev 'RETURN 1'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: "21", cache: maven }
+      # Runs the real test suite against the Neo4j service. The LLM-backed tests
+      # (SessionCreationIT, ContradictionEvalTest) self-skip when GEMINI_API_KEY is absent.
+      - name: Test backend
+        working-directory: backend
+        run: mvn -B test
+        env:
+          NEO4J_URI: bolt://localhost:7687
+          NEO4J_USERNAME: neo4j
+          NEO4J_PASSWORD: loreweave-dev
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20", cache: npm, cache-dependency-path: frontend/package-lock.json }
+      - name: Typecheck + build
+        working-directory: frontend
+        run: |
+          npm install
+          npx tsc --noEmit
+          npm run build
+        env:
+          # Publishable keys are public by design. Overridable via a repo secret.
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || 'pk_test_ZmxlZXQtdGljay01NS5jbGVyay5hY2NvdW50cy5kZXYk' }}

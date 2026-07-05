@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: loreweave-backend
+  neo4j:
+    uri: ${NEO4J_URI:bolt://localhost:7687}
+    authentication:
+      username: ${NEO4J_USERNAME:neo4j}
+      password: ${NEO4J_PASSWORD:loreweave-dev}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Clerk issues the JWT; we verify it against Clerk's JWKS.
+          # Defaults point at the real dev instance (fleet-tick-55); these are public URLs
+          # (derivable from the publishable key), overridable via env for other instances/prod.
+          issuer-uri: ${CLERK_ISSUER:https://fleet-tick-55.clerk.accounts.dev}
+          jwk-set-uri: ${CLERK_JWKS_URL:https://fleet-tick-55.clerk.accounts.dev/.well-known/jwks.json}
+
+server:
+  # Cloud Run injects $PORT (defaults to 8080); the container MUST listen on it.
+  port: ${PORT:8080}
+  forward-headers-strategy: framework   # trust Cloud Run's X-Forwarded-* (correct scheme/host behind the proxy)
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+loreweave:
+  llm:
+    api-key: ${GEMINI_API_KEY:changeme}
+    # gemini-2.0-flash now returns free-tier limit:0; 2.5-flash is the current free-tier flash model.
+    model: ${GEMINI_MODEL:gemini-2.5-flash}
+  guard:                     # the contradiction guard (M4)
+    # A cheap binary classifier — runs on flash-lite, which has its OWN per-model daily quota, so the
+    # guard never starves narration (free tier caps 2.5-flash at ~20 requests/day). See ARCHITECTURE.md §5.
+    model: ${GUARD_MODEL:gemini-2.5-flash-lite}
+    min-confidence: 0.5      # a "contradicts" verdict below this isn't actionable
+    min-overlap: 0.12        # Jaccard content-word overlap needed before we spend an NLI call
+    max-checks: 16           # cap NLI calls per turn so a fact-heavy turn can't run away on quota
+    max-retries: 3           # retry a transient 429 (per-minute throttle)
+    retry-backoff-ms: 10000
+  cors:
+    allowed-origin: ${FRONTEND_ORIGIN:http://localhost:3000}
+  retrieval:
+    max-facts: 24            # token-budget cap for RAG
+  ratelimit:                 # cap the expensive turn endpoint per user (protects free-tier quota)
+    enabled: ${RATELIMIT_ENABLED:true}
+    turns-per-minute: ${RATELIMIT_TURNS_PER_MINUTE:20}

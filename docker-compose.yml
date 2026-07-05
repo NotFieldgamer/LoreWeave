@@ -1,0 +1,14 @@
+services:
+  neo4j:
+    image: neo4j:5-community
+    container_name: loreweave-neo4j
+    ports:
+      - "7474:7474"   # Browser UI
+      - "7687:7687"   # Bolt
+    environment:
+      - NEO4J_AUTH=neo4j/loreweave-dev
+      - NEO4J_PLUGINS=["apoc"]
+    volumes:
+      - loreweave_neo4j_data:/data
+volumes:
+  loreweave_neo4j_data:
