@@ -1,0 +1,38 @@
+# Render Blueprint for the Loreweave backend (Spring Boot on the free tier, no credit card).
+# In Render: New → Blueprint → connect this repo. Render reads this file and prompts for the
+# `sync: false` secrets. The frontend still deploys to Vercel — see docs/DEPLOY.md.
+services:
+  - type: web
+    name: loreweave-backend
+    runtime: docker
+    plan: free                 # 512MB / spins down after ~15 min idle
+    region: singapore          # closest to India; also: oregon, frankfurt, ohio
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /api/health
+    envVars:
+      # 512MB is tight for a JVM — keep the heap conservative so it boots. Raise if you upgrade.
+      - key: JAVA_TOOL_OPTIONS
+        value: -XX:MaxRAMPercentage=55.0
+      # Neo4j AuraDB Free
+      - key: NEO4J_URI
+        sync: false            # neo4j+s://<host>.databases.neo4j.io
+      - key: NEO4J_USERNAME
+        value: neo4j
+      - key: NEO4J_PASSWORD
+        sync: false
+      # Gemini
+      - key: GEMINI_API_KEY
+        sync: false            # AIza...
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: GUARD_MODEL
+        value: gemini-2.5-flash-lite
+      # Clerk (same instance as the frontend's pk/sk)
+      - key: CLERK_ISSUER
+        sync: false            # https://<slug>.clerk.accounts.dev
+      - key: CLERK_JWKS_URL
+        sync: false            # <issuer>/.well-known/jwks.json
+      # CORS — set to your Vercel URL after the frontend deploys
+      - key: FRONTEND_ORIGIN
+        sync: false            # https://<your-app>.vercel.app
