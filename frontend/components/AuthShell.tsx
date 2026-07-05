@@ -1,8 +1,8 @@
 import Link from "next/link";
 
 /** Split-screen frame for the custom auth pages: glass hero on the left, the form on the right. */
-export function AuthShell({ title, subtitle, children }:
-  { title: string; subtitle: string; children: React.ReactNode }) {
+export function AuthShell({ title, subtitle, altPrompt, altLabel, altHref, children }:
+  { title: string; subtitle: string; altPrompt: string; altLabel: string; altHref: string; children: React.ReactNode }) {
   return (
     <main className="min-h-screen grid lg:grid-cols-2">
       {/* Left — brand hero */}
@@ -31,11 +31,15 @@ export function AuthShell({ title, subtitle, children }:
 
       {/* Right — the form */}
       <section className="flex items-center justify-center p-6 sm:p-12">
-        <div className="w-full max-w-sm">
+        <div className="w-full max-w-md">
           <div className="lg:hidden mb-8"><Link href="/" className="font-display text-2xl">Loreweave</Link></div>
           <h2 className="text-2xl mb-1">{title}</h2>
           <p className="text-muted text-sm mb-8">{subtitle}</p>
-          <div className="glass p-6">{children}</div>
+          <div className="glass glass-strong p-6 sm:p-7 overflow-hidden">{children}</div>
+          <p className="text-muted text-sm mt-6 text-center">
+            {altPrompt}{" "}
+            <Link href={altHref} className="hover:underline" style={{ color: "var(--aurora-1)" }}>{altLabel}</Link>
+          </p>
         </div>
       </section>
     </main>

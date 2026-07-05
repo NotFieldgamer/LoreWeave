@@ -3,7 +3,13 @@ import { AuthShell } from "@/components/AuthShell";
 
 export default function SignInPage() {
   return (
-    <AuthShell title="Welcome back" subtitle="Step back into your adventure.">
+    <AuthShell
+      title="Welcome back"
+      subtitle="Step back into your adventure."
+      altPrompt="New here?"
+      altLabel="Create an account"
+      altHref="/sign-up"
+    >
       <SignIn routing="path" path="/sign-in" signUpUrl="/sign-up" forceRedirectUrl="/dashboard" />
     </AuthShell>
   );

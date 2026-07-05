@@ -24,10 +24,14 @@ const clerkAppearance = {
     fontFamily: "var(--font-sans)",
   },
   elements: {
+    // Make every Clerk wrapper fill our glass card so nothing overflows its width.
     rootBox: "w-full",
-    card: "bg-transparent shadow-none p-0",
+    cardBox: "w-full !shadow-none !border-0",
+    card: "w-full bg-transparent shadow-none p-0 gap-5",
+    header: "hidden",
     headerTitle: "hidden",
     headerSubtitle: "hidden",
+    socialButtons: "gap-3",
     socialButtonsBlockButton: "glass btn-secondary !rounded-xl h-11",
     formFieldInput: "glass-input",
     formButtonPrimary: "btn btn-primary w-full !shadow-none normal-case",
